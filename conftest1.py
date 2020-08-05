@@ -6,7 +6,7 @@ import time
 def pytest_addoption(parser):
     parser.addoption('--language', action='store', default='en', help='choose language')
 
-@pytest.fixture()
+@pytest.fixture(scope='function')
 def browser(request):
     language=request.config.getoption('language')
     options2 = Options()
