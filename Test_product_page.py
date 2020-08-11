@@ -3,6 +3,7 @@ from .pages.login_page import LoginPage
 from .pages.product_page import ProductPage
 from .pages.basket_page import BasketPage
 import pytest
+import time
 
     #переход по множеству ссылок, в одной из них баг
 @pytest.mark.parametrize('links', ["http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207/?promo=offer0",
@@ -69,3 +70,28 @@ def test_guest_cant_see_product_in_basket_opened_from_product_page(browser):
     basket_page=BasketPage(browser, browser.current_url)
     basket_page.basket_should_be_empty()
     basket_page.should_be_empty_basket_message()
+
+    #тесты с залогиненными пользователями
+class TestUserAddToBasketFromProductPage():
+    #фикстура setup
+    @pytest.fixture(scope="function", autouse=True)
+    def setup(self,browser):
+        email = str(time.time()) + "@fakemail.org"
+        link='http://selenium1py.pythonanywhere.com/ru/accounts/login/'
+        login_page=LoginPage(browser,link)
+        login_page.open()
+        login_page.register_new_user(email,'somepwd123')
+        login_page.should_be_authorized_user()
+
+    # Негативный тест. Отображение оповещения при открытии страницы
+    def test_user_cant_see_success_message(self, browser):
+        link='http://selenium1py.pythonanywhere.com/ru/catalogue/the-shellcoders-handbook_209/?promo=newYear'
+        page=ProductPage(browser, link)
+        page.open()
+        page.should_not_be_success_message()
+    # пользователь может добавить продукт в корзину
+    def test_user_can_add_product_to_basket(self, browser):    
+        link='http://selenium1py.pythonanywhere.com/catalogue/coders-at-work_207'
+        page=ProductPage(browser, link)
+        page.open()
+        page.add_to_basket_without_alert()
